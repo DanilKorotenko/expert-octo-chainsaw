@@ -6,6 +6,27 @@ API_AVAILABLE(macos(11.0))
     dispatch_queue_t _queue;
 }
 
+- (NENetworkRule *)ruleWithPort:(NSUInteger)port
+    proto:(NENetworkRuleProtocol)proto
+{
+    NWHostEndpoint *endpoint = nil;
+
+    // Port 0 mean that rule catches all port range.
+    if (port != 0)
+    {
+        endpoint = [NWHostEndpoint endpointWithHostname:@"0.0.0.0"
+            port:@(port).stringValue];
+    }
+
+    return [[NENetworkRule alloc]
+        initWithRemoteNetwork:endpoint
+            remotePrefix:0
+            localNetwork:nil
+            localPrefix:0
+            protocol:proto
+            direction:NETrafficDirectionOutbound];
+}
+
 - (NENetworkRule *)ruleWithHost:(NSString *)host
                       prefixLen:(NSUInteger)prefix
                            port:(NSUInteger)port
@@ -29,18 +50,7 @@ API_AVAILABLE(macos(11.0))
 
     settings.includedNetworkRules =
         @[
-            [self ruleWithHost:@"2000::"    prefixLen:3 port:0 proto:NENetworkRuleProtocolTCP],
-
-            // 0.0.0.0/0 - 224.0.0.0/3 - 0.0.0.0/8
-            [self ruleWithHost:@"1.0.0.0"   prefixLen:8 port:0 proto:NENetworkRuleProtocolTCP],
-            [self ruleWithHost:@"2.0.0.0"   prefixLen:7 port:0 proto:NENetworkRuleProtocolTCP],
-            [self ruleWithHost:@"4.0.0.0"   prefixLen:6 port:0 proto:NENetworkRuleProtocolTCP],
-            [self ruleWithHost:@"8.0.0.0"   prefixLen:5 port:0 proto:NENetworkRuleProtocolTCP],
-            [self ruleWithHost:@"16.0.0.0"  prefixLen:4 port:0 proto:NENetworkRuleProtocolTCP],
-            [self ruleWithHost:@"32.0.0.0"  prefixLen:3 port:0 proto:NENetworkRuleProtocolTCP],
-            [self ruleWithHost:@"64.0.0.0"  prefixLen:2 port:0 proto:NENetworkRuleProtocolTCP],
-            [self ruleWithHost:@"128.0.0.0" prefixLen:2 port:0 proto:NENetworkRuleProtocolTCP],
-            [self ruleWithHost:@"192.0.0.0" prefixLen:3 port:0 proto:NENetworkRuleProtocolTCP],
+            [self ruleWithPort:0 proto:NENetworkRuleProtocolTCP],
         ];
 
     [self setTunnelNetworkSettings:settings completionHandler:
